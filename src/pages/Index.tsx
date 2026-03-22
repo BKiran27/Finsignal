@@ -1,16 +1,38 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Header } from '@/components/layout/Header';
+import { NavTabs } from '@/components/layout/NavTabs';
+import { DashboardPage } from './DashboardPage';
+import { ResearchPage } from './ResearchPage';
+import { HoldingsPage } from './HoldingsPage';
+import { RiskPage } from './RiskPage';
+import { AllocatorPage } from './AllocatorPage';
+import { ResearchDeskPage } from './ResearchDeskPage';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
+  const { user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState('dash');
+
+  const handleOpenStock = (sym: string) => {
+    if (sym) setActiveTab('analyse');
+  };
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="flex flex-col h-screen overflow-hidden" style={{ backgroundImage: 'radial-gradient(hsl(var(--brand)/0.035) 1px, transparent 1px)', backgroundSize: '28px 28px' }}>
+      <Header onSignOut={signOut} userName={userName} />
+      <NavTabs active={activeTab} onChange={setActiveTab} />
+      <div className="flex-1 overflow-hidden flex">
+        {activeTab === 'dash' && <DashboardPage onOpenStock={handleOpenStock} />}
+        {activeTab === 'analyse' && <ResearchPage />}
+        {activeTab === 'portfolio' && <HoldingsPage />}
+        {activeTab === 'risk' && <RiskPage />}
+        {activeTab === 'allocator' && <AllocatorPage />}
+        {activeTab === 'advisor' && <ResearchDeskPage />}
+      </div>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
