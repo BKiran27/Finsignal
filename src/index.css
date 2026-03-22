@@ -2,95 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* FinSignal Dark Theme */
+    --background: 222 33% 5%;
+    --foreground: 224 60% 97%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 222 26% 7%;
+    --card-foreground: 224 60% 97%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 222 26% 7%;
+    --popover-foreground: 224 60% 97%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 42 56% 54%;
+    --primary-foreground: 30 100% 5%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 222 18% 12%;
+    --secondary-foreground: 224 60% 97%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 222 18% 12%;
+    --muted-foreground: 225 16% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 222 18% 14%;
+    --accent-foreground: 224 60% 97%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 4 100% 64%;
+    --destructive-foreground: 224 60% 97%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 0 0% 100% / 0.07;
+    --input: 0 0% 100% / 0.07;
+    --ring: 42 56% 54%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* FinSignal Brand Colors */
+    --brand: 42 56% 54%;
+    --brand-dim: 42 56% 54% / 0.12;
+    --brand-glow: 42 56% 54% / 0.28;
+    --brand2: 228 91% 64%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Semantic Colors */
+    --fs-green: 155 87% 46%;
+    --fs-green-dim: 155 87% 46% / 0.1;
+    --fs-red: 4 100% 64%;
+    --fs-red-dim: 4 100% 64% / 0.1;
+    --fs-gold: 34 100% 64%;
+    --fs-gold-dim: 34 100% 64% / 0.1;
+    --fs-blue: 228 91% 64%;
+    --fs-blue-dim: 228 91% 64% / 0.1;
+    --fs-purple: 262 100% 71%;
+    --fs-purple-dim: 262 100% 71% / 0.1;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Surfaces */
+    --fs-s0: 222 30% 6%;
+    --fs-s1: 222 26% 8%;
+    --fs-s2: 222 22% 10%;
+    --fs-s3: 222 18% 12%;
+    --fs-s4: 222 16% 14%;
+    --fs-s5: 222 14% 17%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Text */
+    --fs-t0: 224 60% 97%;
+    --fs-t1: 225 22% 77%;
+    --fs-t2: 225 16% 50%;
+    --fs-t3: 225 18% 33%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Borders */
+    --fs-b0: 0 0% 100% / 0.04;
+    --fs-b1: 0 0% 100% / 0.07;
+    --fs-b2: 0 0% 100% / 0.11;
+    --fs-b3: 0 0% 100% / 0.18;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 222 26% 7%;
+    --sidebar-foreground: 225 22% 77%;
+    --sidebar-primary: 42 56% 54%;
+    --sidebar-primary-foreground: 30 100% 5%;
+    --sidebar-accent: 222 18% 12%;
+    --sidebar-accent-foreground: 224 60% 97%;
+    --sidebar-border: 0 0% 100% / 0.07;
+    --sidebar-ring: 42 56% 54%;
   }
 }
 
@@ -98,8 +90,93 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--fs-b2));
+    border-radius: 99px;
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .font-serif {
+    font-family: 'DM Serif Display', serif;
+  }
+  .text-brand {
+    color: hsl(var(--brand));
+  }
+  .bg-brand {
+    background: linear-gradient(135deg, hsl(var(--brand)), #9A6B10);
+  }
+  .bg-brand-dim {
+    background: hsl(var(--brand-dim));
+  }
+  .text-up {
+    color: hsl(var(--fs-green));
+  }
+  .text-down {
+    color: hsl(var(--fs-red));
+  }
+  .text-neutral-signal {
+    color: hsl(var(--fs-gold));
+  }
+  .bg-up-dim {
+    background: hsl(var(--fs-green-dim));
+  }
+  .bg-down-dim {
+    background: hsl(var(--fs-red-dim));
+  }
+  .surface-0 {
+    background: hsl(var(--fs-s0));
+  }
+  .surface-1 {
+    background: hsl(var(--fs-s1));
+  }
+  .surface-2 {
+    background: hsl(var(--fs-s2));
+  }
+  .surface-3 {
+    background: hsl(var(--fs-s3));
+  }
+  .surface-4 {
+    background: hsl(var(--fs-s4));
+  }
+  .text-t0 {
+    color: hsl(var(--fs-t0));
+  }
+  .text-t1 {
+    color: hsl(var(--fs-t1));
+  }
+  .text-t2 {
+    color: hsl(var(--fs-t2));
+  }
+  .text-t3 {
+    color: hsl(var(--fs-t3));
+  }
+  .border-b0 {
+    border-color: hsl(var(--fs-b0));
+  }
+  .border-b1 {
+    border-color: hsl(var(--fs-b1));
+  }
+  .border-b2 {
+    border-color: hsl(var(--fs-b2));
+  }
+  .border-b3 {
+    border-color: hsl(var(--fs-b3));
   }
 }
