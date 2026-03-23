@@ -4,10 +4,12 @@ import { Header } from '@/components/layout/Header';
 import { NavTabs } from '@/components/layout/NavTabs';
 import { DashboardPage } from './DashboardPage';
 import { ResearchPage } from './ResearchPage';
+import { ScreenerPage } from './ScreenerPage';
 import { HoldingsPage } from './HoldingsPage';
 import { RiskPage } from './RiskPage';
 import { AllocatorPage } from './AllocatorPage';
 import { ResearchDeskPage } from './ResearchDeskPage';
+import { DB } from '@/data/stocks';
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -15,6 +17,10 @@ const Index = () => {
 
   const handleOpenStock = (sym: string) => {
     if (sym) setActiveTab('analyse');
+  };
+
+  const handleScreenerSelect = (sym: string) => {
+    setActiveTab('analyse');
   };
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -26,6 +32,7 @@ const Index = () => {
       <div className="flex-1 overflow-hidden flex">
         {activeTab === 'dash' && <DashboardPage onOpenStock={handleOpenStock} />}
         {activeTab === 'analyse' && <ResearchPage />}
+        {activeTab === 'screener' && <ScreenerPage onSelectStock={handleScreenerSelect} />}
         {activeTab === 'portfolio' && <HoldingsPage />}
         {activeTab === 'risk' && <RiskPage />}
         {activeTab === 'allocator' && <AllocatorPage />}
