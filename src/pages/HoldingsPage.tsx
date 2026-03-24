@@ -9,6 +9,7 @@ export const HoldingsPage: React.FC = () => {
   const [qty, setQty] = useState('');
   const [avg, setAvg] = useState('');
   const [sec, setSec] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
 
   const handleAdd = () => {
     const s = sym.trim().toUpperCase();
@@ -18,6 +19,7 @@ export const HoldingsPage: React.FC = () => {
     addPosition({ sym: s, qty: q, avg: a, sec: sec || 'Others' });
     setSym(''); setQty(''); setAvg(''); setSec('');
     toast.success(`${s} added to portfolio`);
+    setShowAdd(false);
   };
 
   const rows = portfolio.map((h, i) => {
@@ -34,11 +36,19 @@ export const HoldingsPage: React.FC = () => {
   const COLORS = ['#4F6EF7', '#10D98A', '#9B6BFF', '#FFB547', '#FF4757', '#06B6D4', '#EC4899', '#F97316'];
 
   return (
-    <div className="flex flex-1 overflow-hidden" style={{ display: 'grid', gridTemplateColumns: '300px 1fr' }}>
-      {/* Left */}
-      <div className="surface-1 border-r border-b1 flex flex-col overflow-hidden">
+    <div className="flex flex-1 overflow-hidden flex-col md:grid md:grid-cols-[300px_1fr]">
+      {/* Mobile Add Button */}
+      <div className="md:hidden flex items-center justify-between px-4 py-2.5 surface-1 border-b border-b1">
+        <span className="text-xs font-bold text-t2">{portfolio.length} Holdings</span>
+        <button onClick={() => setShowAdd(!showAdd)} className="px-3 py-1.5 bg-brand rounded-lg text-xs font-bold text-primary-foreground active:scale-95">
+          {showAdd ? '✕ Close' : '+ Add'}
+        </button>
+      </div>
+
+      {/* Left - Add Form */}
+      <div className={`${showAdd ? 'block' : 'hidden'} md:block surface-1 md:border-r border-b1 flex flex-col overflow-hidden`}>
         <div className="p-4 border-b border-b1 flex-shrink-0">
-          <div className="text-[13px] font-bold flex items-center gap-1.5 mb-3.5">
+          <div className="text-[13px] font-bold flex items-center gap-1.5 mb-3">
             <span className="text-base">+</span> Add Position
           </div>
           <input value={sym} onChange={e => setSym(e.target.value)} className="w-full surface-3 border border-b1 rounded-xl px-3.5 py-2.5 text-t0 text-[13px] outline-none mb-2 transition-colors focus:border-brand" placeholder="Symbol — e.g. RELIANCE" />
@@ -50,28 +60,28 @@ export const HoldingsPage: React.FC = () => {
             <option value="">— Select Sector —</option>
             {SECTORS.map(s => <option key={s}>{s}</option>)}
           </select>
-          <button onClick={handleAdd} className="w-full py-2.5 bg-brand rounded-xl font-bold text-sm text-primary-foreground transition-all hover:opacity-90 hover:-translate-y-px active:translate-y-0">
+          <button onClick={handleAdd} className="w-full py-2.5 bg-brand rounded-xl font-bold text-sm text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]">
             Add to Portfolio
           </button>
         </div>
-        <div className="px-4 py-3 border-t border-b1 flex-shrink-0">
+        <div className="hidden md:block px-4 py-3 border-t border-b1 flex-shrink-0">
           <div className="text-[10px] font-bold tracking-widest uppercase text-t3">
             Holdings <span className="text-brand font-normal">{portfolio.length}</span>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="hidden md:block flex-1 overflow-y-auto">
           {portfolio.length === 0 ? (
-            <div className="p-10 text-center text-t3 text-xs leading-relaxed">No positions yet.<br />Add your first holding above.</div>
+            <div className="p-10 text-center text-t3 text-xs leading-relaxed">No positions yet.</div>
           ) : (
             rows.map((r, i) => (
               <div key={i} className="flex items-center px-4 py-3 border-b border-b0 cursor-pointer hover:bg-[rgba(255,255,255,0.02)] transition-colors gap-2.5">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0 border border-b1"
-                  style={{ background: `${COLORS[i % COLORS.length]}22`, color: COLORS[i % COLORS.length], borderColor: `${COLORS[i % COLORS.length]}33` }}>
+                  style={{ background: `${COLORS[i % COLORS.length]}22`, color: COLORS[i % COLORS.length] }}>
                   {r.h.sym.slice(0, 2)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-bold">{r.h.sym}</div>
-                  <div className="text-[10px] text-t2 mt-0.5 font-medium">{r.h.qty} shares · {r.h.sec}</div>
+                  <div className="text-[10px] text-t2 mt-0.5 font-medium">{r.h.qty} · {r.h.sec}</div>
                 </div>
                 <div className="text-right">
                   <div className={`font-mono text-[13px] font-medium ${r.pnl >= 0 ? 'text-up' : 'text-down'}`}>₹{Math.round(r.val).toLocaleString('en-IN')}</div>
@@ -85,18 +95,40 @@ export const HoldingsPage: React.FC = () => {
       </div>
 
       {/* Right */}
-      <div className="overflow-y-auto p-5 flex flex-col gap-3.5">
-        <div className="grid grid-cols-3 gap-2.5">
-          <div className="surface-2 border border-b1 rounded-2xl p-4"><div className="font-mono text-[22px] font-semibold leading-none mb-1.5">₹{Math.round(inv).toLocaleString('en-IN')}</div><div className="text-[11px] text-t2 font-semibold">Total Invested</div></div>
-          <div className="surface-2 border border-b1 rounded-2xl p-4"><div className={`font-mono text-[22px] font-semibold leading-none mb-1.5 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>₹{Math.round(cur).toLocaleString('en-IN')}</div><div className="text-[11px] text-t2 font-semibold">Current Value</div></div>
-          <div className="surface-2 border border-b1 rounded-2xl p-4">
-            <div className={`font-mono text-[22px] font-semibold leading-none mb-1.5 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>{totalPnl >= 0 ? '+' : ''}₹{Math.abs(Math.round(totalPnl)).toLocaleString('en-IN')}</div>
-            <div className="text-[11px] text-t2 font-semibold">Total P&L</div>
-            <div className={`font-mono text-[11px] mt-1.5 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>{totalPnl >= 0 ? '+' : ''}{totalPct.toFixed(2)}%</div>
+      <div className="overflow-y-auto p-3 md:p-5 flex flex-col gap-3.5">
+        <div className="grid grid-cols-3 gap-2 md:gap-2.5">
+          <div className="surface-2 border border-b1 rounded-2xl p-3 md:p-4"><div className="font-mono text-lg md:text-[22px] font-semibold leading-none mb-1">₹{Math.round(inv).toLocaleString('en-IN')}</div><div className="text-[10px] md:text-[11px] text-t2 font-semibold">Invested</div></div>
+          <div className="surface-2 border border-b1 rounded-2xl p-3 md:p-4"><div className={`font-mono text-lg md:text-[22px] font-semibold leading-none mb-1 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>₹{Math.round(cur).toLocaleString('en-IN')}</div><div className="text-[10px] md:text-[11px] text-t2 font-semibold">Current</div></div>
+          <div className="surface-2 border border-b1 rounded-2xl p-3 md:p-4">
+            <div className={`font-mono text-lg md:text-[22px] font-semibold leading-none mb-1 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>{totalPnl >= 0 ? '+' : ''}₹{Math.abs(Math.round(totalPnl)).toLocaleString('en-IN')}</div>
+            <div className="text-[10px] md:text-[11px] text-t2 font-semibold">P&L</div>
+            <div className={`font-mono text-[10px] md:text-[11px] mt-1 ${totalPnl >= 0 ? 'text-up' : 'text-down'}`}>{totalPnl >= 0 ? '+' : ''}{totalPct.toFixed(2)}%</div>
           </div>
         </div>
 
-        <div className="surface-2 border border-b1 rounded-2xl overflow-hidden">
+        {/* Mobile: holdings cards */}
+        <div className="md:hidden flex flex-col gap-2">
+          {rows.map((r, i) => (
+            <div key={i} className="surface-2 border border-b1 rounded-xl p-3 flex items-center gap-3 active:scale-[0.99] transition-all">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                style={{ background: `${COLORS[i % COLORS.length]}22`, color: COLORS[i % COLORS.length] }}>
+                {r.h.sym.slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold">{r.h.sym}</div>
+                <div className="text-[10px] text-t2">{r.h.qty} shares · {r.h.sec}</div>
+              </div>
+              <div className="text-right">
+                <div className={`font-mono text-xs font-medium ${r.pnl >= 0 ? 'text-up' : 'text-down'}`}>₹{Math.round(r.val).toLocaleString('en-IN')}</div>
+                <div className={`font-mono text-[10px] ${r.pnl >= 0 ? 'text-up' : 'text-down'}`}>{r.pct >= 0 ? '+' : ''}{r.pct.toFixed(1)}%</div>
+              </div>
+              <button onClick={() => removePosition(r.i)} className="text-t3 text-base p-1 hover:text-fs-red">×</button>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block surface-2 border border-b1 rounded-2xl overflow-hidden">
           <div className="px-4 py-3 border-b border-b1 text-xs font-bold">Holdings Detail</div>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">

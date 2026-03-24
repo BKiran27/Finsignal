@@ -5,14 +5,14 @@ type SortKey = 'p' | 'cp' | 'pe' | 'pb' | 'roe' | 'de' | 'dy' | 'beta' | 'cf' | 
 type SortDir = 'asc' | 'desc';
 
 const PRESET_SCREENS: { label: string; filter: (s: Stock) => boolean; desc: string }[] = [
-  { label: '💎 Value Picks', filter: s => s.pe < 15 && s.roe > 15 && s.de < 1, desc: 'P/E < 15, ROE > 15%, Low Debt' },
-  { label: '🚀 Growth Monsters', filter: s => s.roe > 25 && s.sc === 'buy' && s.cf > 70, desc: 'ROE > 25%, BUY signal, High confidence' },
-  { label: '🛡️ Fortress Balance Sheet', filter: s => s.de === 0 && s.pledge === 0 && s.promo > 45, desc: 'Zero debt, Zero pledge, Strong promoters' },
-  { label: '💰 Dividend Kings', filter: s => s.dy > 2.5, desc: 'Dividend yield > 2.5%' },
-  { label: '⚠️ Red Flags', filter: s => s.pledge > 5 || (s.de > 3 && s.roe < 10), desc: 'High pledge or high leverage + low ROE' },
-  { label: '🎯 High Conviction AI', filter: s => s.cf >= 75, desc: 'AI confidence ≥ 75%' },
-  { label: '📉 Beaten Down', filter: s => ((s.p - s.w52l) / (s.w52h - s.w52l)) < 0.25, desc: 'Near 52-week lows' },
-  { label: '🏦 Banking Picks', filter: s => s.sec === 'Banking' && s.pe < 20, desc: 'Banking sector, P/E < 20' },
+  { label: '💎 Value', filter: s => s.pe < 15 && s.roe > 15 && s.de < 1, desc: 'P/E < 15, ROE > 15%, Low Debt' },
+  { label: '🚀 Growth', filter: s => s.roe > 25 && s.sc === 'buy' && s.cf > 70, desc: 'ROE > 25%, BUY, High confidence' },
+  { label: '🛡️ Fortress', filter: s => s.de === 0 && s.pledge === 0 && s.promo > 45, desc: 'Zero debt & pledge' },
+  { label: '💰 Dividend', filter: s => s.dy > 2.5, desc: 'Yield > 2.5%' },
+  { label: '⚠️ Red Flags', filter: s => s.pledge > 5 || (s.de > 3 && s.roe < 10), desc: 'High pledge / leverage' },
+  { label: '🎯 AI Picks', filter: s => s.cf >= 75, desc: 'Confidence ≥ 75%' },
+  { label: '📉 Oversold', filter: s => ((s.p - s.w52l) / (s.w52h - s.w52l)) < 0.25, desc: 'Near 52W lows' },
+  { label: '🏦 Banking', filter: s => s.sec === 'Banking' && s.pe < 20, desc: 'Banking, P/E < 20' },
 ];
 
 export const ScreenerPage: React.FC<{ onSelectStock?: (sym: string) => void }> = ({ onSelectStock }) => {
@@ -25,23 +25,19 @@ export const ScreenerPage: React.FC<{ onSelectStock?: (sym: string) => void }> =
   const [maxPE, setMaxPE] = useState('');
   const [minROE, setMinROE] = useState('');
   const [maxDE, setMaxDE] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const sectors = useMemo(() => [...new Set(DB.map(s => s.sec))].sort(), []);
 
   const filtered = useMemo(() => {
     let list = [...DB];
-
-    if (activePreset !== null) {
-      list = list.filter(PRESET_SCREENS[activePreset].filter);
-    }
-
+    if (activePreset !== null) list = list.filter(PRESET_SCREENS[activePreset].filter);
     if (sectorFilter) list = list.filter(s => s.sec === sectorFilter);
     if (signalFilter) list = list.filter(s => s.sc === signalFilter);
     if (minPE) list = list.filter(s => s.pe >= parseFloat(minPE));
     if (maxPE) list = list.filter(s => s.pe <= parseFloat(maxPE));
     if (minROE) list = list.filter(s => s.roe >= parseFloat(minROE));
     if (maxDE) list = list.filter(s => s.de <= parseFloat(maxDE));
-
     list.sort((a, b) => sortDir === 'asc' ? (a[sortKey] as number) - (b[sortKey] as number) : (b[sortKey] as number) - (a[sortKey] as number));
     return list;
   }, [activePreset, sectorFilter, signalFilter, minPE, maxPE, minROE, maxDE, sortKey, sortDir]);
@@ -53,39 +49,44 @@ export const ScreenerPage: React.FC<{ onSelectStock?: (sym: string) => void }> =
 
   const SortHeader: React.FC<{ k: SortKey; label: string }> = ({ k, label }) => (
     <th onClick={() => toggleSort(k)}
-      className="px-3 py-2.5 text-[9px] font-bold tracking-wider uppercase text-t3 text-right whitespace-nowrap cursor-pointer hover:text-t0 transition-colors select-none">
+      className="px-2 md:px-3 py-2.5 text-[9px] font-bold tracking-wider uppercase text-t3 text-right whitespace-nowrap cursor-pointer hover:text-t0 transition-colors select-none">
       {label} {sortKey === k ? (sortDir === 'desc' ? '▼' : '▲') : ''}
     </th>
   );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Preset Screens */}
-      <div className="px-5 py-3 surface-0 border-b border-b1 flex-shrink-0">
-        <div className="flex gap-1.5 flex-wrap mb-2.5">
+      {/* Presets */}
+      <div className="px-3 md:px-5 py-3 surface-0 border-b border-b1 flex-shrink-0">
+        <div className="flex gap-1.5 flex-wrap mb-2">
           {PRESET_SCREENS.map((preset, i) => (
             <button key={i} onClick={() => setActivePreset(activePreset === i ? null : i)}
-              className={`px-3 py-1.5 rounded-lg text-[10.5px] font-semibold border transition-all
+              className={`px-2.5 md:px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all active:scale-95
                 ${activePreset === i ? 'bg-brand-dim border-brand text-brand' : 'border-b1 text-t2 hover:border-brand hover:text-brand'}`}>
               {preset.label}
             </button>
           ))}
         </div>
 
-        {/* Custom Filters */}
-        <div className="flex gap-2 items-end flex-wrap">
+        {/* Mobile filter toggle */}
+        <button onClick={() => setShowFilters(!showFilters)} className="md:hidden text-[10px] text-t2 font-semibold mb-2">
+          {showFilters ? '▲ Hide Filters' : '▼ Show Filters'} · {filtered.length} stocks
+        </button>
+
+        {/* Filters */}
+        <div className={`${showFilters ? 'flex' : 'hidden'} md:flex gap-2 items-end flex-wrap`}>
           <div className="flex flex-col">
             <label className="text-[9px] font-semibold text-t3 mb-1">Sector</label>
             <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
-              className="surface-3 border border-b1 rounded-lg px-2.5 py-1.5 text-[11px] text-t0 outline-none appearance-none cursor-pointer min-w-[120px]">
-              <option value="">All Sectors</option>
+              className="surface-3 border border-b1 rounded-lg px-2.5 py-1.5 text-[11px] text-t0 outline-none appearance-none cursor-pointer min-w-[110px]">
+              <option value="">All</option>
               {sectors.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div className="flex flex-col">
             <label className="text-[9px] font-semibold text-t3 mb-1">Signal</label>
             <select value={signalFilter} onChange={e => setSignalFilter(e.target.value)}
-              className="surface-3 border border-b1 rounded-lg px-2.5 py-1.5 text-[11px] text-t0 outline-none appearance-none cursor-pointer min-w-[100px]">
+              className="surface-3 border border-b1 rounded-lg px-2.5 py-1.5 text-[11px] text-t0 outline-none appearance-none cursor-pointer min-w-[80px]">
               <option value="">All</option>
               <option value="buy">BUY</option>
               <option value="hold">HOLD</option>
@@ -93,29 +94,49 @@ export const ScreenerPage: React.FC<{ onSelectStock?: (sym: string) => void }> =
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-[9px] font-semibold text-t3 mb-1">P/E Range</label>
+            <label className="text-[9px] font-semibold text-t3 mb-1">P/E</label>
             <div className="flex gap-1">
-              <input value={minPE} onChange={e => setMinPE(e.target.value)} placeholder="Min" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[60px]" />
-              <input value={maxPE} onChange={e => setMaxPE(e.target.value)} placeholder="Max" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[60px]" />
+              <input value={minPE} onChange={e => setMinPE(e.target.value)} placeholder="Min" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[50px]" />
+              <input value={maxPE} onChange={e => setMaxPE(e.target.value)} placeholder="Max" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[50px]" />
             </div>
           </div>
           <div className="flex flex-col">
             <label className="text-[9px] font-semibold text-t3 mb-1">Min ROE%</label>
-            <input value={minROE} onChange={e => setMinROE(e.target.value)} placeholder="e.g. 15" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[70px]" />
+            <input value={minROE} onChange={e => setMinROE(e.target.value)} placeholder="15" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[60px]" />
           </div>
           <div className="flex flex-col">
             <label className="text-[9px] font-semibold text-t3 mb-1">Max D/E</label>
-            <input value={maxDE} onChange={e => setMaxDE(e.target.value)} placeholder="e.g. 1" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[70px]" />
+            <input value={maxDE} onChange={e => setMaxDE(e.target.value)} placeholder="1" className="surface-3 border border-b1 rounded-lg px-2 py-1.5 text-[11px] outline-none w-[60px]" />
           </div>
-          <div className="text-[11px] text-t2 font-mono font-medium self-end pb-1.5">{filtered.length} stocks</div>
+          <div className="hidden md:block text-[11px] text-t2 font-mono font-medium self-end pb-1.5">{filtered.length} stocks</div>
         </div>
         {activePreset !== null && (
           <div className="mt-2 text-[10px] text-brand font-medium">{PRESET_SCREENS[activePreset].desc}</div>
         )}
       </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto">
+      {/* Mobile: Card View */}
+      <div className="md:hidden flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+        {filtered.slice(0, 50).map(s => (
+          <div key={s.s} onClick={() => onSelectStock?.(s.s)}
+            className="surface-2 border border-b1 rounded-xl p-3 flex items-center gap-3 active:scale-[0.98] transition-all cursor-pointer">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold">{s.s}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${s.sc === 'buy' ? 'bg-fs-green-dim text-fs-green' : s.sc === 'sell' ? 'bg-fs-red-dim text-fs-red' : 'bg-fs-gold-dim text-fs-gold'}`}>{s.sig}</span>
+              </div>
+              <div className="text-[10px] text-t2">{s.sec} · P/E {s.pe}x · ROE {s.roe}%</div>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <div className={`font-mono text-xs font-medium ${s.u ? 'text-up' : 'text-down'}`}>₹{formatINR(s.p)}</div>
+              <div className={`font-mono text-[10px] ${s.u ? 'text-up' : 'text-down'}`}>{s.cp > 0 ? '+' : ''}{s.cp.toFixed(1)}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: Table */}
+      <div className="hidden md:block flex-1 overflow-auto">
         <table className="w-full text-[11px]">
           <thead className="sticky top-0 surface-0 z-10">
             <tr className="border-b border-b1">
