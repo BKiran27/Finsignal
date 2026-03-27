@@ -316,20 +316,17 @@ export const ResearchDeskPage: React.FC = () => {
                 ${m.role === 'ai' ? 'bg-brand text-primary-foreground' : 'surface-4 text-t1 border border-b2'}`}>
                 {m.role === 'ai' ? 'AI' : 'U'}
               </div>
-              <div className={`px-3 py-2.5 md:px-3.5 md:py-3 rounded-[14px] text-[12px] md:text-[13px] leading-relaxed whitespace-pre-wrap
-                ${m.role === 'ai' ? 'surface-2 border border-b1 rounded-tl-[4px]' : 'bg-brand-dim border border-[hsl(var(--brand-glow))] rounded-tr-[4px] text-t0'}`}>
-                {m.content}
-              </div>
+              {m.role === 'ai' ? (
+                <div className="px-3 py-2.5 md:px-4 md:py-3 rounded-[14px] rounded-tl-[4px] surface-2 border border-b1 min-w-0 flex-1">
+                  <AIResponseRenderer content={m.content} loading={loading && i === messages.length - 1} />
+                </div>
+              ) : (
+                <div className="px-3 py-2.5 md:px-3.5 md:py-3 rounded-[14px] rounded-tr-[4px] bg-brand-dim border border-[hsl(var(--brand-glow))] text-t0 text-[12px] md:text-[13px] leading-relaxed whitespace-pre-wrap">
+                  {m.content}
+                </div>
+              )}
             </div>
           ))}
-          {loading && (
-            <div className="flex gap-2.5 animate-fade-in-up">
-              <div className="w-7 h-7 md:w-[30px] md:h-[30px] rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold bg-brand text-primary-foreground">AI</div>
-              <div className="px-3.5 py-3 rounded-[14px] rounded-tl-[4px] surface-2 border border-b1">
-                <div className="flex gap-1 items-center"><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce" /><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce [animation-delay:0.15s]" /><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce [animation-delay:0.3s]" /></div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Quick Chips */}
