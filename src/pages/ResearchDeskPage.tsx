@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { DB } from '@/data/stocks';
+import { streamDeepResearch } from '@/lib/streamChat';
+import { AIResponseRenderer } from '@/components/AIResponseRenderer';
 import { Menu, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChatMsg { role: 'user' | 'ai'; content: string; }
 
@@ -143,24 +145,34 @@ export const ResearchDeskPage: React.FC = () => {
     setLoading(true);
     setChatInput('');
 
+    let accumulated = '';
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: [
-            { role: 'system', content: currentMode.system },
-            ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content })),
-            { role: 'user', content: text }
-          ]
-        }
+      // Add empty AI message to stream into
+      setMessages(prev => [...prev, { role: 'ai', content: '' }]);
+      
+      await streamDeepResearch({
+        messages: [
+          ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' as const : 'user' as const, content: m.content })),
+          { role: 'user' as const, content: text }
+        ],
+        mode: isPF ? 'macro-outlook' : 'stock-deep-dive',
+        onDelta: (chunk) => {
+          accumulated += chunk;
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'ai', content: accumulated };
+            return updated;
+          });
+        },
+        onDone: () => setLoading(false),
+        onError: (err) => {
+          toast.error(err);
+          setLoading(false);
+        },
       });
-      if (error) throw error;
-      const aiContent = typeof data === 'string' ? data : (data?.content || data?.choices?.[0]?.message?.content || 'Analysis complete.');
-      setMessages(prev => [...prev, { role: 'ai', content: aiContent }]);
     } catch (e: any) {
       console.error('Chat error:', e);
-      const demoResponse = `**${currentMode.name} — Analysis**\n\nProcessing: "${text}"\n\n**Market Context (Mar 2026):**\n• NIFTY 50 at 24,835 (+0.74%)\n• IT sector +1.24%\n• RBI repo 6.5%\n• FII inflows +₹2,340 Cr\n\nAI engine processing your request.\n\n*FinSignal Capital — Institutional Research*`;
-      setMessages(prev => [...prev, { role: 'ai', content: demoResponse }]);
-    } finally {
+      toast.error('Analysis failed. Please try again.');
       setLoading(false);
     }
   };
@@ -304,20 +316,17 @@ export const ResearchDeskPage: React.FC = () => {
                 ${m.role === 'ai' ? 'bg-brand text-primary-foreground' : 'surface-4 text-t1 border border-b2'}`}>
                 {m.role === 'ai' ? 'AI' : 'U'}
               </div>
-              <div className={`px-3 py-2.5 md:px-3.5 md:py-3 rounded-[14px] text-[12px] md:text-[13px] leading-relaxed whitespace-pre-wrap
-                ${m.role === 'ai' ? 'surface-2 border border-b1 rounded-tl-[4px]' : 'bg-brand-dim border border-[hsl(var(--brand-glow))] rounded-tr-[4px] text-t0'}`}>
-                {m.content}
-              </div>
+              {m.role === 'ai' ? (
+                <div className="px-3 py-2.5 md:px-4 md:py-3 rounded-[14px] rounded-tl-[4px] surface-2 border border-b1 min-w-0 flex-1">
+                  <AIResponseRenderer content={m.content} loading={loading && i === messages.length - 1} />
+                </div>
+              ) : (
+                <div className="px-3 py-2.5 md:px-3.5 md:py-3 rounded-[14px] rounded-tr-[4px] bg-brand-dim border border-[hsl(var(--brand-glow))] text-t0 text-[12px] md:text-[13px] leading-relaxed whitespace-pre-wrap">
+                  {m.content}
+                </div>
+              )}
             </div>
           ))}
-          {loading && (
-            <div className="flex gap-2.5 animate-fade-in-up">
-              <div className="w-7 h-7 md:w-[30px] md:h-[30px] rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold bg-brand text-primary-foreground">AI</div>
-              <div className="px-3.5 py-3 rounded-[14px] rounded-tl-[4px] surface-2 border border-b1">
-                <div className="flex gap-1 items-center"><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce" /><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce [animation-delay:0.15s]" /><div className="w-1.5 h-1.5 bg-t3 rounded-full animate-bounce [animation-delay:0.3s]" /></div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Quick Chips */}

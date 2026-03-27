@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { INDICES, TOP_GAINERS, TOP_LOSERS, HEATMAP_DATA, DB } from '@/data/stocks';
 import { streamDeepResearch } from '@/lib/streamChat';
+import { AIResponseRenderer } from '@/components/AIResponseRenderer';
+import { CurrencyWidget } from '@/components/CurrencyWidget';
 import { toast } from 'sonner';
 
 const SignalRow: React.FC<{ s: string; sig: string; sc: string; p: string; c: string; cf: number; onClick: () => void }> = ({ s, sig, sc, p, c, cf, onClick }) => (
@@ -71,15 +73,8 @@ const MarketIntelligence: React.FC = () => {
           ))}
         </div>
         {analysis ? (
-          <div className="surface-3 border border-b0 rounded-xl p-3 max-h-[220px] overflow-y-auto">
-            <div className="text-[11px] leading-[1.7] text-t1 whitespace-pre-wrap">
-              {analysis.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
-                part.startsWith('**') && part.endsWith('**')
-                  ? <span key={i} className="font-bold text-brand text-[10px] uppercase tracking-wider block mt-2 mb-1">{part.slice(2, -2)}</span>
-                  : <span key={i}>{part}</span>
-              )}
-            </div>
-            {loading && <div className="mt-2 flex gap-1"><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce" /><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:0.15s]" /><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:0.3s]" /></div>}
+          <div className="surface-3 border border-b0 rounded-xl p-3 max-h-[280px] overflow-y-auto">
+            <AIResponseRenderer content={analysis} loading={loading} />
           </div>
         ) : (
           <div className="surface-3 border border-b0 rounded-xl p-4 text-center text-t3 text-[11px]">
@@ -258,6 +253,9 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
 
         {/* AI Market Intelligence */}
         <MarketIntelligence />
+
+        {/* Currency Comparison */}
+        <CurrencyWidget />
 
         {/* Heatmap */}
         <div className="surface-2 border border-b1 rounded-2xl p-3 md:p-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { DB, formatINR, type Stock } from '@/data/stocks';
 import { streamDeepResearch } from '@/lib/streamChat';
+import { AIResponseRenderer } from '@/components/AIResponseRenderer';
 import { toast } from 'sonner';
 
 /* ── AI Deep Research Panel ── */
@@ -69,15 +70,8 @@ const AIDeepResearch: React.FC<{ stock: Stock }> = ({ stock }) => {
           ))}
         </div>
         {analysis ? (
-          <div className="surface-3 border border-b0 rounded-xl p-3 md:p-4 max-h-[400px] overflow-y-auto">
-            <div className="text-[11px] md:text-[12.5px] leading-[1.75] text-t1 whitespace-pre-wrap font-[system-ui]">
-              {analysis.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
-                part.startsWith('**') && part.endsWith('**')
-                  ? <span key={i} className="font-bold text-brand text-[10px] md:text-[11px] uppercase tracking-wider block mt-3 mb-1.5">{part.slice(2, -2)}</span>
-                  : <span key={i}>{part}</span>
-              )}
-            </div>
-            {loading && <div className="mt-2 flex gap-1"><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce" /><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:0.15s]" /><div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:0.3s]" /></div>}
+          <div className="surface-3 border border-b0 rounded-xl p-3 md:p-4 max-h-[500px] overflow-y-auto">
+            <AIResponseRenderer content={analysis} loading={loading} />
           </div>
         ) : (
           <div className="surface-3 border border-b0 rounded-xl p-6 text-center text-t3 text-xs">
