@@ -254,6 +254,9 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
         {/* AI Market Intelligence */}
         <MarketIntelligence />
 
+        {/* Currency Comparison */}
+        <CurrencyWidget />
+
         {/* Heatmap */}
         <div className="surface-2 border border-b1 rounded-2xl p-3 md:p-4 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-3">
