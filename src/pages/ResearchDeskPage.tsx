@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { DB } from '@/data/stocks';
+import { streamDeepResearch } from '@/lib/streamChat';
+import { AIResponseRenderer } from '@/components/AIResponseRenderer';
 import { Menu, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChatMsg { role: 'user' | 'ai'; content: string; }
 
@@ -143,24 +145,34 @@ export const ResearchDeskPage: React.FC = () => {
     setLoading(true);
     setChatInput('');
 
+    let accumulated = '';
     try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: {
-          messages: [
-            { role: 'system', content: currentMode.system },
-            ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content })),
-            { role: 'user', content: text }
-          ]
-        }
+      // Add empty AI message to stream into
+      setMessages(prev => [...prev, { role: 'ai', content: '' }]);
+      
+      await streamDeepResearch({
+        messages: [
+          ...messages.map(m => ({ role: m.role === 'ai' ? 'assistant' as const : 'user' as const, content: m.content })),
+          { role: 'user' as const, content: text }
+        ],
+        mode: isPF ? 'macro-outlook' : 'stock-deep-dive',
+        onDelta: (chunk) => {
+          accumulated += chunk;
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'ai', content: accumulated };
+            return updated;
+          });
+        },
+        onDone: () => setLoading(false),
+        onError: (err) => {
+          toast.error(err);
+          setLoading(false);
+        },
       });
-      if (error) throw error;
-      const aiContent = typeof data === 'string' ? data : (data?.content || data?.choices?.[0]?.message?.content || 'Analysis complete.');
-      setMessages(prev => [...prev, { role: 'ai', content: aiContent }]);
     } catch (e: any) {
       console.error('Chat error:', e);
-      const demoResponse = `**${currentMode.name} — Analysis**\n\nProcessing: "${text}"\n\n**Market Context (Mar 2026):**\n• NIFTY 50 at 24,835 (+0.74%)\n• IT sector +1.24%\n• RBI repo 6.5%\n• FII inflows +₹2,340 Cr\n\nAI engine processing your request.\n\n*FinSignal Capital — Institutional Research*`;
-      setMessages(prev => [...prev, { role: 'ai', content: demoResponse }]);
-    } finally {
+      toast.error('Analysis failed. Please try again.');
       setLoading(false);
     }
   };
