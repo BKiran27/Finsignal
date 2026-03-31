@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { DB } from '@/data/stocks';
 import { streamDeepResearch } from '@/lib/streamChat';
 import { AIResponseRenderer } from '@/components/AIResponseRenderer';
+import { downloadReportPdf, markdownToHtml } from '@/lib/exportPdf';
 import { Menu, X } from 'lucide-react';
 import { toast } from 'sonner';
 
