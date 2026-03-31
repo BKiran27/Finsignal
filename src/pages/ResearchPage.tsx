@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { DB, formatINR, type Stock } from '@/data/stocks';
 import { streamDeepResearch } from '@/lib/streamChat';
 import { AIResponseRenderer } from '@/components/AIResponseRenderer';
+import { downloadReportPdf, markdownToHtml } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 
 /* ── AI Deep Research Panel ── */
@@ -56,7 +57,15 @@ const AIDeepResearch: React.FC<{ stock: Stock }> = ({ stock }) => {
           <div className="w-2 h-2 rounded-full bg-brand animate-pulse-dot" />
           <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-t2">AI Deep Research</div>
         </div>
-        <span className="text-[9px] px-2 py-0.5 rounded bg-brand-dim text-brand font-bold">INSTITUTIONAL</span>
+        <div className="flex items-center gap-2">
+          {analysis && !loading && (
+            <button onClick={() => downloadReportPdf(markdownToHtml(analysis), `${stock.s} Deep Research`)}
+              className="text-[9px] px-2 py-0.5 rounded bg-brand/10 text-brand font-bold hover:bg-brand/20 transition-all active:scale-95 flex items-center gap-1">
+              📄 PDF
+            </button>
+          )}
+          <span className="text-[9px] px-2 py-0.5 rounded bg-brand-dim text-brand font-bold">INSTITUTIONAL</span>
+        </div>
       </div>
       <div className="p-3 md:p-4">
         <div className="flex flex-wrap gap-1.5 mb-3">
