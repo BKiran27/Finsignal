@@ -320,6 +320,12 @@ export const ResearchDeskPage: React.FC = () => {
               {m.role === 'ai' ? (
                 <div className="px-3 py-2.5 md:px-4 md:py-3 rounded-[14px] rounded-tl-[4px] surface-2 border border-b1 min-w-0 flex-1">
                   <AIResponseRenderer content={m.content} loading={loading && i === messages.length - 1} />
+                  {!(loading && i === messages.length - 1) && m.content.length > 50 && (
+                    <button onClick={() => downloadReportPdf(markdownToHtml(m.content), `${currentMode.name} Report`)}
+                      className="mt-2 text-[9px] px-2.5 py-1 rounded-lg bg-brand/10 text-brand font-bold hover:bg-brand/20 transition-all active:scale-95 flex items-center gap-1">
+                      📄 Download PDF
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="px-3 py-2.5 md:px-3.5 md:py-3 rounded-[14px] rounded-tr-[4px] bg-brand-dim border border-[hsl(var(--brand-glow))] text-t0 text-[12px] md:text-[13px] leading-relaxed whitespace-pre-wrap">
