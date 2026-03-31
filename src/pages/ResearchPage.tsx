@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { DB, formatINR, type Stock } from '@/data/stocks';
 import { streamDeepResearch } from '@/lib/streamChat';
 import { AIResponseRenderer } from '@/components/AIResponseRenderer';
+import { downloadReportPdf, markdownToHtml } from '@/lib/exportPdf';
 import { toast } from 'sonner';
 
 /* ── AI Deep Research Panel ── */
