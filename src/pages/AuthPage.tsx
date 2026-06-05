@@ -1,97 +1,131 @@
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const AuthPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) toast.error(error.message);
-      } else {
-        if (!name.trim()) { toast.error('Please enter your name'); setLoading(false); return; }
+      if (isSignUp) {
         const { error } = await signUp(email, password, name);
-        if (error) toast.error(error.message);
-        else toast.success('Account created! Check your email to verify.');
+        if (error) {
+          toast.error(error.message || 'Sign up failed');
+        } else {
+          toast.success('Sign up successful! Check your email.');
+          setEmail('');
+          setPassword('');
+          setName('');
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.error(error.message || 'Sign in failed');
+        } else {
+          toast.success('Signed in successfully!');
+        }
       }
+    } catch (error) {
+      toast.error('An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background" style={{ backgroundImage: 'radial-gradient(hsl(var(--brand)/0.035) 1px, transparent 1px)', backgroundSize: '28px 28px' }}>
-      <div className="w-[440px] max-w-[93vw] surface-1 border border-b2 rounded-3xl p-9 relative overflow-hidden animate-fade-in-up">
-        <div className="absolute -top-[60px] -right-[60px] w-[200px] h-[200px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, hsl(var(--brand-glow)) 0%, transparent 70%)' }} />
-        
-        <div className="flex items-center gap-2.5 mb-7">
-          <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 20 20" fill="none" width="20" height="20"><path d="M10 2L3 7v6l7 5 7-5V7L10 2z" fill="#031A14"/><path d="M10 6l-4 2.5v5L10 16l4-2.5v-5L10 6z" fill="rgba(255,255,255,0.4)"/><circle cx="10" cy="10" r="2" fill="#031A14"/></svg>
+    <div className="min-h-screen bg-gradient-to-br from-background to-surface-1 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-surface-2 border border-b1 rounded-2xl p-8">
+          <div className="flex justify-center mb-8">
+            <div className="w-12 h-12 rounded-xl bg-brand flex items-center justify-center">
+              <span className="text-white font-bold text-lg">FS</span>
+            </div>
           </div>
-          <div>
-            <div className="font-serif text-[22px] text-brand">FinSignal Capital</div>
-            <div className="text-[11px] text-brand font-semibold tracking-widest uppercase mt-0.5">Institutional Research Platform</div>
+          
+          <h1 className="text-2xl font-bold text-center mb-2">FinSignal Capital</h1>
+          <p className="text-sm text-t2 text-center mb-8">
+            AI-Powered Investment Research & Personal Finance
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-medium mb-2">Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2 bg-surface-3 border border-b0 rounded-lg focus:outline-none focus:border-brand transition-colors"
+                  placeholder="Your name"
+                  required={isSignUp}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 bg-surface-3 border border-b0 rounded-lg focus:outline-none focus:border-brand transition-colors"
+                placeholder="your@email.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 bg-surface-3 border border-b0 rounded-lg focus:outline-none focus:border-brand transition-colors"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-brand hover:bg-brand/90 text-white font-semibold py-2 rounded-lg transition-all"
+            >
+              {loading ? 'Loading...' : isSignUp ? 'Create Account' : 'Sign In'}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-t2">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setEmail('');
+                  setPassword('');
+                  setName('');
+                }}
+                className="text-brand font-semibold hover:text-brand/80 transition-colors"
+              >
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </button>
+            </p>
           </div>
         </div>
 
-        <h1 className="text-[22px] font-extrabold tracking-tight leading-tight mb-2">
-          {isLogin ? 'Welcome back, investor' : 'Create your account'}
-        </h1>
-        <p className="text-[13px] text-t2 leading-relaxed mb-6">
-          {isLogin 
-            ? 'Access institutional-grade investment intelligence for the Indian equity market.'
-            : 'Join FinSignal Capital for AI-powered research, risk analytics, and portfolio insights — built for Indian investors.'}
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {!isLogin && (
-            <div>
-              <label className="text-[11px] font-semibold text-t2 tracking-wide mb-1.5 block">FULL NAME</label>
-              <input
-                type="text" value={name} onChange={e => setName(e.target.value)}
-                className="w-full surface-3 border border-b1 rounded-xl px-4 py-3 text-t0 text-[13px] outline-none transition-colors focus:border-brand"
-                placeholder="Your full name"
-              />
-            </div>
-          )}
-          <div>
-            <label className="text-[11px] font-semibold text-t2 tracking-wide mb-1.5 block">EMAIL</label>
-            <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              className="w-full surface-3 border border-b1 rounded-xl px-4 py-3 text-t0 text-[13px] outline-none transition-colors focus:border-brand"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label className="text-[11px] font-semibold text-t2 tracking-wide mb-1.5 block">PASSWORD</label>
-            <input
-              type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6}
-              className="w-full surface-3 border border-b1 rounded-xl px-4 py-3 text-t0 text-[13px] outline-none transition-colors focus:border-brand"
-              placeholder="Min 6 characters"
-            />
-          </div>
-          <button
-            type="submit" disabled={loading}
-            className="w-full py-3.5 bg-brand border-none rounded-xl font-bold text-sm text-primary-foreground tracking-tight transition-all hover:opacity-90 hover:-translate-y-px active:translate-y-0 disabled:opacity-35"
-          >
-            {loading ? 'Please wait...' : isLogin ? 'Sign In →' : 'Create Account →'}
-          </button>
-        </form>
-
-        <div className="text-center mt-4 text-xs text-t2">
-          {isLogin ? "Don't have an account? " : "Already have an account? "}
-          <button onClick={() => setIsLogin(!isLogin)} className="text-brand font-semibold hover:underline">
-            {isLogin ? 'Sign up' : 'Sign in'}
-          </button>
+        <div className="mt-8 text-center text-xs text-t3">
+          <p>Demo credentials (optional):</p>
+          <p className="mt-1">Email: demo@example.com</p>
+          <p>Password: demo123456</p>
         </div>
       </div>
     </div>
