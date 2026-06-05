@@ -1,5 +1,5 @@
 Overview
-FinSignal Capital is a self-contained investment research and personal finance analysis platform powered by the Anthropic Claude API. It delivers 18 AI-driven analysis modes through a polished, institutional dark UI — no backend, no build step, single index.html file.
+FinSignal Capital is a self-contained investment research and personal finance analysis platform . It delivers 18 AI-driven analysis modes through a polished, institutional dark UI — no backend, no build step, single index.html file.
 
 Features
 Investment Analysis (Gold Accent)
