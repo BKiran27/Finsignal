@@ -1,0 +1,124 @@
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', process.env.FRONTEND_URL || ''],
+  credentials: true,
+}));
+app.use(express.json());
+
+// Initialize Supabase
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_KEY || '';
+export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Health check
+app.get('/api/health', async (req: Request, res: Response) => {
+  let mlStatus = 'offline';
+  try {
+    const mlRes = await fetch('http://127.0.0.1:5001/api/ml/health');
+    if (mlRes.ok) mlStatus = 'connected';
+  } catch (e) {}
+
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    services: {
+      supabase: supabaseUrl ? 'connected' : 'missing-credentials',
+      ml_service: mlStatus
+    }
+  });
+});
+
+// AI Analysis Routes
+app.post('/api/ai/investment-analysis', async (req: Request, res: Response) => {
+  try {
+    const { ticker, analysisType, context } = req.body;
+
+    if (!ticker || !analysisType) {
+      return res.status(400).json({ error: 'ticker and analysisType required' });
+    }
+
+    const response = await fetch('http://127.0.0.1:5001/api/ml/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticker, analysisType, context })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: 'ML service error', details: errText });
+    }
+
+    const result = await response.json() as any;
+
+    res.json({
+      ticker,
+      analysisType,
+      analysis: result.analysis,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Analysis error:', error);
+    res.status(500).json({ error: 'Failed to generate analysis', details: String(error) });
+  }
+});
+
+app.post('/api/ai/budget-analysis', async (req: Request, res: Response) => {
+  try {
+    const { income, expenses, goals } = req.body;
+
+    if (!income || !expenses) {
+      return res.status(400).json({ error: 'income and expenses required' });
+    }
+
+    const response = await fetch('http://127.0.0.1:5001/api/ml/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ income, expenses, goals })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: 'ML service budget error', details: errText });
+    }
+
+    const result = await response.json() as any;
+
+    res.json({
+      budget: result.budget,
+      recommendations: result.recommendations,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Budget analysis error:', error);
+    res.status(500).json({ error: 'Failed to generate budget analysis', details: String(error) });
+  }
+});
+
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  });
+});
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ FinSignal Backend running on http://localhost:${PORT}`);
+  console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
+});

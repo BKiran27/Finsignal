@@ -1,92 +1,44 @@
-type Msg = { role: "user" | "assistant"; content: string };
-
-const DEEP_RESEARCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deep-research`;
-
 export async function streamDeepResearch({
   messages,
   mode,
-  stockData,
   onDelta,
   onDone,
   onError,
 }: {
-  messages: Msg[];
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
   mode: string;
-  stockData?: Record<string, unknown>;
   onDelta: (text: string) => void;
   onDone: () => void;
-  onError?: (error: string) => void;
+  onError: (error: string) => void;
 }) {
-  const resp = await fetch(DEEP_RESEARCH_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ messages, mode, stockData }),
-  });
+  try {
+    const lastMessage = messages[messages.length - 1]?.content || '';
+    
+    // Extract ticker or query from message
+    const tickerMatch = lastMessage.match(/[A-Z]{1,5}\b/);
+    const ticker = tickerMatch?.[0] || 'MARKET';
+    const context = lastMessage;
 
-  if (!resp.ok) {
-    const data = await resp.json().catch(() => ({}));
-    const errorMsg = data?.error || `Request failed (${resp.status})`;
-    onError?.(errorMsg);
-    return;
-  }
+    const response = await fetch('http://localhost:3001/api/ai/investment-analysis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ticker,
+        analysisType: 'full-stock-analysis',
+        context,
+      }),
+    });
 
-  if (!resp.body) {
-    onError?.("No response body");
-    return;
-  }
-
-  const reader = resp.body.getReader();
-  const decoder = new TextDecoder();
-  let textBuffer = "";
-  let streamDone = false;
-
-  while (!streamDone) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    textBuffer += decoder.decode(value, { stream: true });
-
-    let newlineIndex: number;
-    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-      let line = textBuffer.slice(0, newlineIndex);
-      textBuffer = textBuffer.slice(newlineIndex + 1);
-
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (line.startsWith(":") || line.trim() === "") continue;
-      if (!line.startsWith("data: ")) continue;
-
-      const jsonStr = line.slice(6).trim();
-      if (jsonStr === "[DONE]") { streamDone = true; break; }
-
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
-      } catch {
-        textBuffer = line + "\n" + textBuffer;
-        break;
-      }
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
     }
-  }
 
-  // Final flush
-  if (textBuffer.trim()) {
-    for (let raw of textBuffer.split("\n")) {
-      if (!raw) continue;
-      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-      if (raw.startsWith(":") || raw.trim() === "") continue;
-      if (!raw.startsWith("data: ")) continue;
-      const jsonStr = raw.slice(6).trim();
-      if (jsonStr === "[DONE]") continue;
-      try {
-        const parsed = JSON.parse(jsonStr);
-        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (content) onDelta(content);
-      } catch { /* ignore */ }
-    }
+    const data = await response.json();
+    onDelta(data.analysis);
+    onDone();
+  } catch (error) {
+    onError(error instanceof Error ? error.message : 'Stream error');
   }
-
-  onDone();
 }
