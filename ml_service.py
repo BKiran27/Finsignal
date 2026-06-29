@@ -651,6 +651,80 @@ This machine learning analysis was compiled using a local autoregressive linear 
         "timestamp": datetime.now().isoformat()
     })
 
+@app.route('/api/ml/quote/<ticker>', methods=['GET'])
+def stock_quote(ticker):
+    ticker_ns = ensure_ns(ticker)
+    try:
+        stock = yf.Ticker(ticker_ns)
+        hist = stock.history(period="3mo")
+        if hist.empty:
+            return jsonify({"error": f"Symbol {ticker} not found on Yahoo Finance."}), 404
+        hist = hist.dropna(subset=["Close"])
+        if hist.empty:
+            return jsonify({"error": f"Symbol {ticker} has no price history."}), 404
+            
+        closes = [float(x) for x in hist["Close"].values]
+        current_price = float(closes[-1])
+        prev_price = float(closes[-2]) if len(closes) > 1 else current_price
+        day_change = float(current_price - prev_price)
+        day_change_pct = float((day_change / prev_price * 100) if prev_price else 0.0)
+        
+        info = stock.info or {}
+        
+        # Calculate technical momentum signal code and confidence dynamically
+        ema5 = hist["Close"].ewm(span=5, adjust=False).mean().iloc[-1]
+        ema20 = hist["Close"].ewm(span=20, adjust=False).mean().iloc[-1]
+        rsi = calculate_rsi(closes)
+        
+        sig = "HOLD"
+        sc = "hold"
+        cf = 65
+        if ema5 > ema20 and rsi > 45:
+            sig = "BUY"
+            sc = "buy"
+            cf = int(min(95, 60 + (rsi - 45) * 1.2))
+        elif ema5 < ema20 and rsi < 55:
+            sig = "SELL"
+            sc = "sell"
+            cf = int(min(95, 60 + (55 - rsi) * 1.2))
+            
+        # Parse market cap into human readable form
+        mc_raw = sanitize_float(info.get("marketCap", 0))
+        if mc_raw > 1e12:
+            mc = f"₹{mc_raw / 1e12:.2f}T"
+        elif mc_raw > 1e7:
+            mc = f"₹{mc_raw / 1e7:.2f}Cr"
+        else:
+            mc = f"₹{mc_raw:,.0f}"
+            
+        return jsonify({
+            "s": ticker.upper(),
+            "n": info.get("shortName") or info.get("longName") or ticker.upper(),
+            "p": float(round(current_price, 2)),
+            "ch": float(round(day_change, 2)),
+            "cp": float(round(day_change_pct, 2)),
+            "u": bool(day_change >= 0),
+            "sec": info.get("sector") or "General Sector",
+            "mc": mc,
+            "pe": float(round(sanitize_float(info.get("trailingPE") or info.get("forwardPE"), 25.0), 1)),
+            "pb": float(round(sanitize_float(info.get("priceToBook"), 3.2), 1)),
+            "roe": float(round(sanitize_float(info.get("returnOnEquity"), 0.15) * 100, 1)),
+            "de": float(round(sanitize_float(info.get("debtToEquity"), 15.0) / (100.0 if sanitize_float(info.get("debtToEquity")) > 2.0 else 1.0), 2)),
+            "beta": float(round(sanitize_float(info.get("beta"), 1.0), 2)),
+            "dy": float(round(sanitize_float(info.get("dividendYield"), 0.0) * 100, 2)),
+            "pledge": float(round(sanitize_float(info.get("pledgRatio"), 0.0), 1)),
+            "promo": float(round(sanitize_float(info.get("heldPercentInvestors", 0.55) * 100), 1)),
+            "w52h": float(round(sanitize_float(info.get("fiftyTwoWeekHigh"), current_price * 1.1), 2)),
+            "w52l": float(round(sanitize_float(info.get("fiftyTwoWeekLow"), current_price * 0.9), 2)),
+            "lo": float(round(sanitize_float(hist["Low"].iloc[-1], current_price * 0.98), 2)),
+            "hi": float(round(sanitize_float(hist["High"].iloc[-1], current_price * 1.02), 2)),
+            "sig": sig,
+            "sc": sc,
+            "cf": cf
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch stock quote: {str(e)}"}), 500
+
 if __name__ == '__main__':
     print("=============================================================")
     print("  FinSignal local Machine Learning Service running on Port 5001")

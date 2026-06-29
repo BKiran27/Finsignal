@@ -135,6 +135,22 @@ app.get('/api/agent-debate/:ticker', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/stock-quote/:ticker', async (req: Request, res: Response) => {
+  try {
+    const { ticker } = req.params;
+    const response = await fetch(`http://127.0.0.1:5001/api/ml/quote/${ticker}`);
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: 'ML quote error', details: errText });
+    }
+    const result = await response.json() as any;
+    res.json(result);
+  } catch (error) {
+    console.error('Quote proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch stock quote', details: String(error) });
+  }
+});
+
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);

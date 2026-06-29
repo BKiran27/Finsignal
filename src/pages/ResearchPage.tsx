@@ -475,8 +475,36 @@ export const ResearchPage: React.FC = () => {
           {query && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-t2 cursor-pointer text-xl leading-none hover:text-t0 transition-colors" onClick={() => { setQuery(''); setShowDropdown(false); }}>×</span>
           )}
-          {showDropdown && hits.length > 0 && (
+          {showDropdown && (query.trim() || hits.length > 0) && (
             <div className="absolute top-[calc(100%+6px)] left-0 right-0 surface-1 border border-b2 rounded-2xl z-50 max-h-[350px] md:max-h-[400px] overflow-y-auto shadow-2xl">
+              {query.trim() && (
+                <div 
+                  className="flex items-center gap-2.5 px-4 py-3 cursor-pointer border-b border-b0 text-brand font-bold hover:surface-2 transition-colors active:scale-[0.99]"
+                  onMouseDown={async () => {
+                    const sym = query.trim().toUpperCase();
+                    setQuery('');
+                    setShowDropdown(false);
+                    const loadingToast = toast.loading(`Querying real-time quote for ${sym} from NSE...`);
+                    try {
+                      const res = await fetch(`/api/stock-quote/${sym}`);
+                      if (!res.ok) throw new Error();
+                      const liveStock = await res.json();
+                      setSelectedStock(liveStock);
+                      toast.dismiss(loadingToast);
+                      toast.success(`Loaded real-time data for ${sym}!`);
+                    } catch {
+                      toast.dismiss(loadingToast);
+                      toast.error(`Symbol '${sym}' not found on NSE or ML server is offline.`);
+                    }
+                  }}
+                >
+                  <span className="w-8 h-8 surface-3 rounded-lg flex items-center justify-center text-xs font-bold text-brand flex-shrink-0">📡</span>
+                  <div>
+                    <div className="text-[13px]">Query real-time quote for "{query.toUpperCase()}"</div>
+                    <div className="text-[10px] text-t2 font-medium mt-0.5">Fetches live metrics directly from Yahoo Finance</div>
+                  </div>
+                </div>
+              )}
               {hits.map(s => (
                 <div key={s.s} className="flex items-center justify-between px-3 md:px-4 py-3 cursor-pointer border-b border-b0 transition-colors hover:surface-2 active:scale-[0.99]"
                   onMouseDown={() => { setSelectedStock(s); setQuery(''); setShowDropdown(false); }}>
