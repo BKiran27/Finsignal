@@ -9,6 +9,9 @@ import { HoldingsPage } from './HoldingsPage';
 import { RiskPage } from './RiskPage';
 import { AllocatorPage } from './AllocatorPage';
 import { ResearchDeskPage } from './ResearchDeskPage';
+import { SurveillancePage } from './SurveillancePage';
+import { AgentDebatePage } from './AgentDebatePage';
+import { AccountPage } from './AccountPage';
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -30,12 +33,15 @@ const Index = () => {
       <NavTabs active={activeTab} onChange={setActiveTab} />
       <div className="flex-1 overflow-hidden flex">
         {activeTab === 'dash' && <DashboardPage onOpenStock={handleOpenStock} />}
+        {activeTab === 'surveillance' && <SurveillancePage />}
+        {activeTab === 'debate' && <AgentDebatePage />}
         {activeTab === 'analyse' && <ResearchPage />}
         {activeTab === 'screener' && <ScreenerPage onSelectStock={handleScreenerSelect} />}
         {activeTab === 'portfolio' && <HoldingsPage />}
         {activeTab === 'risk' && <RiskPage />}
         {activeTab === 'allocator' && <AllocatorPage />}
         {activeTab === 'advisor' && <ResearchDeskPage />}
+        {activeTab === 'account' && <AccountPage />}
       </div>
     </div>
   );

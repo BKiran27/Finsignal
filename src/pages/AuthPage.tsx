@@ -104,7 +104,64 @@ export const AuthPage: React.FC = () => {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          {/* Social Logins Divider */}
+          <div className="my-5 flex items-center justify-between text-xs text-t3">
+            <span className="w-[30%] h-[1px] bg-b1"></span>
+            <span>OR CONTINUE WITH</span>
+            <span className="w-[30%] h-[1px] bg-b1"></span>
+          </div>
+
+          {/* Social Logins Mock Buttons */}
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <button 
+              onClick={() => {
+                toast.info("Simulating Secure Google Authentication Flow...");
+                setTimeout(() => {
+                  signIn("google-developer@example.com", "google-oauth-1123");
+                  toast.success("Successfully logged in via Google sandbox!");
+                }, 1000);
+              }}
+              className="py-2 px-3 border border-b1 rounded-lg hover:bg-[rgba(255,255,255,0.02)] text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <span>🌐</span> Google
+            </button>
+            <button 
+              onClick={() => {
+                toast.info("Simulating Secure GitHub Authentication Flow...");
+                setTimeout(() => {
+                  signIn("github-developer@example.com", "github-oauth-1123");
+                  toast.success("Successfully logged in via GitHub sandbox!");
+                }, 1000);
+              }}
+              className="py-2 px-3 border border-b1 rounded-lg hover:bg-[rgba(255,255,255,0.02)] text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <span>🐙</span> GitHub
+            </button>
+          </div>
+
+          {/* Guest Logins Section */}
+          <div className="space-y-2">
+            <button 
+              onClick={() => {
+                signIn("sandbox-guest@example.com", "sandbox-pass");
+                toast.success("Logged in successfully as Guest Sandbox Developer!");
+              }}
+              className="w-full py-2 bg-surface-3 hover:bg-surface-3/80 text-t1 border border-b1 text-xs font-bold rounded-lg transition-all active:scale-[0.98]"
+            >
+              👤 Quick Guest Sandbox Login
+            </button>
+            <button 
+              onClick={() => {
+                signIn("admin-monitor@finsignal.com", "admin-pass");
+                toast.success("Logged in successfully as Admin Monitor!");
+              }}
+              className="w-full py-2 bg-brand/10 hover:bg-brand/15 text-brand border border-brand/20 text-xs font-bold rounded-lg transition-all active:scale-[0.98]"
+            >
+              🛡️ Quick Admin Monitor Login
+            </button>
+          </div>
+
+          <div className="mt-5 text-center">
             <p className="text-sm text-t2">
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
@@ -122,10 +179,8 @@ export const AuthPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-8 text-center text-xs text-t3">
-          <p>Demo credentials (optional):</p>
-          <p className="mt-1">Email: demo@example.com</p>
-          <p>Password: demo123456</p>
+        <div className="mt-6 text-center text-[10px] text-t3">
+          <p>Local sandbox offline bypass active.</p>
         </div>
       </div>
     </div>
