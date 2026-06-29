@@ -1,0 +1,25 @@
+{
+  "name": "finsignal-backend",
+  "version": "1.0.0",
+  "description": "FinSignal Backend API Server",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "*",
+    "@anthropic-ai/sdk": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*"
+  },
+  "devDependencies": {
+    "@types/cors": "*",
+    "@types/express": "*",
+    "@types/node": "*",
+    "ts-node": "*",
+    "typescript": "*"
+  }
+}

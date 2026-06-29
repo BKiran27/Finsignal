@@ -73,3 +73,16 @@ export const DB: Stock[] = [
   { s: 'AXISBANK', sc: 'buy', sig: 'BUY', p: 1090, ch: -16, cp: -1.5, u: false, cf: 72, sec: 'Finance', mc: 'Large Cap', n: 'Axis Bank Limited', pe: 19, pb: 1.9, roe: 16, de: 0.15, beta: 1.3, w52h: 1250, w52l: 900, promo: 0, pledge: 0, dy: 2.5, lo: 1050, hi: 1150 },
   { s: 'KOTAKBANK', sc: 'buy', sig: 'BUY', p: 1892, ch: -23, cp: -1.2, u: false, cf: 78, sec: 'Finance', mc: 'Large Cap', n: 'Kotak Mahindra Bank', pe: 21, pb: 2.1, roe: 17, de: 0.05, beta: 1.2, w52h: 2100, w52l: 1650, promo: 27, pledge: 0, dy: 2.0, lo: 1850, hi: 1950 },
 ];
+
+export const SECTORS = ['IT', 'Finance', 'Energy', 'Consumer', 'Pharma', 'Utilities', 'Metal', 'Auto', 'Others'];
+
+export const PRICES: Record<string, number> = {
+  RELIANCE: 2845,
+  INFY: 1834,
+  TCS: 3457,
+  WIPRO: 832,
+  HDBANK: 1235,
+  ICICIBANK: 978,
+  AXISBANK: 1090,
+  KOTAKBANK: 1892,
+};

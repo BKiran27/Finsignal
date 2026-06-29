@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
-import { Anthropic } from 'anthropic';
+import { Anthropic } from '@anthropic-ai/sdk';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', process.env.FRONTEND_URL],
+  origin: ['http://localhost:5173', 'http://localhost:3000', process.env.FRONTEND_URL || ''],
   credentials: true,
 }));
 app.use(express.json());
@@ -72,8 +72,8 @@ app.post('/api/ai/investment-analysis', async (req: Request, res: Response) => {
       ],
     });
 
-    const textContent = message.content.find((block) => block.type === 'text');
-    const analysisText = textContent && 'text' in textContent ? textContent.text : '';
+    const textContent = message.content.find((block: any) => block.type === 'text');
+    const analysisText = textContent && 'text' in textContent ? (textContent as any).text : '';
 
     res.json({
       ticker,
@@ -95,8 +95,9 @@ app.post('/api/ai/budget-analysis', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'income and expenses required' });
     }
 
-    const totalExpenses = Object.values(expenses).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
-    const savingsRate = ((income - totalExpenses) / income * 100).toFixed(2);
+    const totalExpenses = Object.values(expenses as any).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0) as number;
+    const incomeNum = Number(income) || 0;
+    const savingsRate = (((incomeNum - totalExpenses) / (incomeNum || 1)) * 100).toFixed(2);
 
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
@@ -115,8 +116,8 @@ Format your response as numbered recommendations with specific actions.`,
       ],
     });
 
-    const textContent = message.content.find((block) => block.type === 'text');
-    const analysisText = textContent && 'text' in textContent ? textContent.text : '';
+    const textContent = message.content.find((block: any) => block.type === 'text');
+    const analysisText = textContent && 'text' in textContent ? (textContent as any).text : '';
 
     res.json({
       budget: {
