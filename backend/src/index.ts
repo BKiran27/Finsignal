@@ -104,6 +104,37 @@ app.post('/api/ai/budget-analysis', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/market-surveillance', async (req: Request, res: Response) => {
+  try {
+    const response = await fetch('http://127.0.0.1:5001/api/ml/surveillance');
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: 'ML surveillance error', details: errText });
+    }
+    const result = await response.json() as any;
+    res.json(result);
+  } catch (error) {
+    console.error('Surveillance proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch surveillance data', details: String(error) });
+  }
+});
+
+app.get('/api/agent-debate/:ticker', async (req: Request, res: Response) => {
+  try {
+    const { ticker } = req.params;
+    const response = await fetch(`http://127.0.0.1:5001/api/ml/debate/${ticker}`);
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({ error: 'ML debate error', details: errText });
+    }
+    const result = await response.json() as any;
+    res.json(result);
+  } catch (error) {
+    console.error('Debate proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch agent debate data', details: String(error) });
+  }
+});
+
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);

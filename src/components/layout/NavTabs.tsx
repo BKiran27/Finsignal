@@ -8,12 +8,15 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'dash', label: 'Dashboard', icon: '📊' },
+  { id: 'surveillance', label: 'Surveillance', icon: '📡' },
+  { id: 'debate', label: 'Agent Debate', icon: '🤖' },
   { id: 'analyse', label: 'Research', icon: '🔬' },
   { id: 'screener', label: 'Screener', icon: '🎯' },
   { id: 'portfolio', label: 'Holdings', icon: '💼' },
   { id: 'risk', label: 'Risk', icon: '⚠️' },
   { id: 'allocator', label: 'Allocator', icon: '⚖️' },
   { id: 'advisor', label: 'Advisor', icon: '💡' },
+  { id: 'account', label: 'Account', icon: '👤' },
 ];
 
 export const NavTabs: React.FC<{ active: string; onChange: (tab: string) => void }> = ({ active, onChange }) => {
