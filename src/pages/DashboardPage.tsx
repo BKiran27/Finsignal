@@ -4,6 +4,7 @@ import { streamDeepResearch } from '@/lib/streamChat';
 import { AIResponseRenderer } from '@/components/AIResponseRenderer';
 import { CurrencyWidget } from '@/components/CurrencyWidget';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api-client';
 
 const SignalRow: React.FC<{ s: string; sig: string; sc: string; p: string; c: string; cf: number; onClick: () => void }> = ({ s, sig, sc, p, c, cf, onClick }) => (
   <div className="flex items-center justify-between py-2.5 border-b border-[rgba(255,255,255,0.025)] cursor-pointer transition-all hover:pl-1.5 active:scale-[0.99]" onClick={onClick}>
@@ -92,7 +93,7 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
 
   const fetchLive = React.useCallback(async () => {
     try {
-      const res = await fetch('/api/market-surveillance');
+      const res = await fetch(`${API_BASE_URL}/api/market-surveillance`);
       if (res.ok) {
         const d = await res.json();
         setLiveData(d);

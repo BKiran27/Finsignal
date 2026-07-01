@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -151,6 +153,28 @@ app.get('/api/stock-quote/:ticker', async (req: Request, res: Response) => {
   }
 });
 
+// Serve React production static bundle
+const distPath = fs.existsSync(path.join(__dirname, '../../dist'))
+  ? path.join(__dirname, '../../dist')
+  : path.join(__dirname, '../dist');
+
+app.use(express.static(distPath));
+
+// Wildcard client router - Fallback to index.html for client-side routing
+app.get('*', (req: Request, res: Response) => {
+  // If it's an API route that fell through, don't serve HTML
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API route not found' });
+  }
+  
+  const indexFile = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexFile)) {
+    res.sendFile(indexFile);
+  } else {
+    res.status(404).send('React production bundle not found. Run npm run build.');
+  }
+});
+
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('Error:', err);
@@ -158,11 +182,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     error: err.message || 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
-});
-
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
 });
 
 app.listen(PORT, () => {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api-client';
 
 interface IndexData {
   name: string;
@@ -44,7 +45,7 @@ export const SurveillancePage: React.FC = () => {
   const fetchSurveillance = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/market-surveillance');
+      const res = await fetch(`${API_BASE_URL}/api/market-surveillance`);
       if (!res.ok) throw new Error('Failed to load surveillance data');
       const d = await res.json();
       setData(d);

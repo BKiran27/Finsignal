@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api-client';
 
 interface Message {
   agent: string;
@@ -45,7 +46,7 @@ export const AgentDebatePage: React.FC = () => {
     setConsensus(null);
 
     try {
-      const res = await fetch(`/api/agent-debate/${sym}`);
+      const res = await fetch(`${API_BASE_URL}/api/agent-debate/${sym}`);
       if (!res.ok) throw new Error('Symbol not found or ML service offline');
       const data = await res.json();
 

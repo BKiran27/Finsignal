@@ -4,6 +4,7 @@ import { streamDeepResearch } from '@/lib/streamChat';
 import { AIResponseRenderer } from '@/components/AIResponseRenderer';
 import { downloadReportPdf, markdownToHtml } from '@/lib/exportPdf';
 import { toast } from 'sonner';
+import { API_BASE_URL } from '@/lib/api-client';
 
 /* ── AI Deep Research Panel ── */
 const AIDeepResearch: React.FC<{ stock: Stock }> = ({ stock }) => {
@@ -486,7 +487,7 @@ export const ResearchPage: React.FC = () => {
                     setShowDropdown(false);
                     const loadingToast = toast.loading(`Querying real-time quote for ${sym} from NSE...`);
                     try {
-                      const res = await fetch(`/api/stock-quote/${sym}`);
+                      const res = await fetch(`${API_BASE_URL}/api/stock-quote/${sym}`);
                       if (!res.ok) throw new Error();
                       const liveStock = await res.json();
                       setSelectedStock(liveStock);
