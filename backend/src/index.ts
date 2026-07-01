@@ -161,7 +161,7 @@ const distPath = fs.existsSync(path.join(__dirname, '../../dist'))
 app.use(express.static(distPath));
 
 // Wildcard client router - Fallback to index.html for client-side routing
-app.get('*', (req: Request, res: Response) => {
+app.get('/*splat', (req: Request, res: Response) => {
   // If it's an API route that fell through, don't serve HTML
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API route not found' });
