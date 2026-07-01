@@ -87,24 +87,60 @@ const MarketIntelligence: React.FC = () => {
 };
 
 export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = ({ onOpenStock }) => {
+  const [liveData, setLiveData] = React.useState<any>(null);
+  const [loadingLive, setLoadingLive] = React.useState(true);
+
+  const fetchLive = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/market-surveillance');
+      if (res.ok) {
+        const d = await res.json();
+        setLiveData(d);
+      }
+    } catch (e) {
+      console.error("Error fetching live dashboard metrics:", e);
+    } finally {
+      setLoadingLive(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchLive();
+    const interval = setInterval(fetchLive, 10000); // poll every 10 seconds
+    return () => clearInterval(interval);
+  }, [fetchLive]);
+
   const buyCount = DB.filter(s => s.sc === 'buy').length;
   const sellCount = DB.filter(s => s.sc === 'sell').length;
   const holdCount = DB.filter(s => s.sc === 'hold').length;
   const avgConfidence = (DB.reduce((s, x) => s + x.cf, 0) / DB.length).toFixed(0);
   const highConviction = DB.filter(s => s.cf >= 75);
 
+  const indicesList = liveData?.indices || INDICES.map(i => ({ name: i.n, value: i.v, change: i.c, up: i.u }));
+  const mmiVal = liveData?.mmi_score || 61.0;
+  const mmiZone = liveData?.mmi_zone || 'Greed';
+  
+  const sectorsList = liveData?.sector_matrix?.map((s: any) => ({
+    n: s.sector,
+    c: `${s.average_change_pct >= 0 ? '+' : ''}${s.average_change_pct}%`,
+    pct: s.average_change_pct
+  })) || HEATMAP_DATA;
+
   return (
     <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
       {/* Left Panel - Hidden on mobile, shown as top strip */}
       <div className="hidden md:block w-[228px] surface-1 border-r border-b1 overflow-y-auto flex-shrink-0">
         <div className="p-3.5 border-b border-b0">
-          <div className="text-[10px] font-bold tracking-widest uppercase text-t3 mb-3">Indices</div>
-          {INDICES.map(i => (
-            <div key={i.n} className="flex items-center justify-between py-2.5 border-b border-[rgba(255,255,255,0.025)] cursor-pointer hover:pl-1.5 transition-all" onClick={() => onOpenStock('')}>
-              <div className="text-[13px] font-bold">{i.n}</div>
+          <div className="text-[10px] font-bold tracking-widest uppercase text-t3 mb-3 flex items-center justify-between">
+            <span>Indices</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" title="Live data feed" />
+          </div>
+          {indicesList.map((i: any) => (
+            <div key={i.name} className="flex items-center justify-between py-2.5 border-b border-[rgba(255,255,255,0.025)] cursor-pointer hover:pl-1.5 transition-all" onClick={() => onOpenStock(i.name.replace(' 50', '').replace(' IT', ''))}>
+              <div className="text-[13px] font-bold">{i.name}</div>
               <div className="text-right">
-                <div className={`font-mono text-[13px] font-medium ${i.u ? 'text-up' : 'text-down'}`}>{i.v}</div>
-                <div className={`font-mono text-[10px] ${i.u ? 'text-up' : 'text-down'}`}>{i.u ? '▲' : '▼'} {i.c}</div>
+                <div className={`font-mono text-[13px] font-medium ${i.up ? 'text-up' : 'text-down'}`}>{i.value}</div>
+                <div className={`font-mono text-[10px] ${i.up ? 'text-up' : 'text-down'}`}>{i.change}</div>
               </div>
             </div>
           ))}
@@ -114,11 +150,11 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
           {[
             { k: 'FII Net', v: '+₹2,340 Cr', cls: 'text-up' },
             { k: 'DII Net', v: '−₹890 Cr', cls: 'text-down' },
-            { k: 'India VIX', v: '13.24', cls: 'text-neutral-signal' },
+            { k: 'India VIX', v: liveData?.mmi_score ? ((100 - liveData.mmi_score) / 5.0 + 10.0).toFixed(2) : '13.24', cls: 'text-neutral-signal' },
             { k: 'USD/INR', v: '83.42', cls: '' },
             { k: 'Crude Oil', v: '$79.14', cls: 'text-down' },
             { k: 'Gold', v: '₹72,840', cls: 'text-up' },
-            { k: 'Adv / Decl', v: '1,847 / 1,102', cls: '' },
+            { k: 'Adv / Decl', v: liveData ? `${liveData.advances} / ${liveData.declines}` : '1,847 / 1,102', cls: '' },
             { k: '10Y G-Sec', v: '7.12%', cls: '' },
             { k: 'RBI Repo', v: '6.50%', cls: '' },
           ].map(d => (
@@ -150,10 +186,10 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
           <div className="text-[10px] font-bold tracking-widest uppercase text-t3 mb-3">Sentiment</div>
           <div className="flex justify-between text-xs mb-1.5">
             <span className="text-t2 font-medium">Fear & Greed</span>
-            <span className="font-mono font-medium text-fs-gold">61 — Greed</span>
+            <span className="font-mono font-medium text-fs-gold">{mmiVal.toFixed(1)} — {mmiZone}</span>
           </div>
           <div className="h-1.5 rounded-full bg-gradient-to-r from-fs-red via-fs-gold to-fs-green relative mb-1">
-            <div className="absolute -top-1 w-3.5 h-3.5 bg-foreground rounded-full border-2 border-background transform -translate-x-1/2 shadow-lg transition-all" style={{ left: '61%' }} />
+            <div className="absolute -top-1 w-3.5 h-3.5 bg-foreground rounded-full border-2 border-background transform -translate-x-1/2 shadow-lg transition-all" style={{ left: `${mmiVal}%` }} />
           </div>
           <div className="flex justify-between text-[10px] text-t3 mt-1"><span>Fear</span><span>Neutral</span><span>Greed</span></div>
         </div>
@@ -163,11 +199,11 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
       <div className="flex-1 overflow-y-auto p-3 md:p-5 flex flex-col gap-3 md:gap-4">
         {/* Mobile: Indices Strip */}
         <div className="md:hidden flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-          {INDICES.map(i => (
-            <div key={i.n} className="surface-2 border border-b1 rounded-xl px-3 py-2 flex-shrink-0 min-w-[120px]">
-              <div className="text-[10px] font-bold text-t2">{i.n}</div>
-              <div className={`font-mono text-xs font-medium ${i.u ? 'text-up' : 'text-down'}`}>{i.v}</div>
-              <div className={`font-mono text-[9px] ${i.u ? 'text-up' : 'text-down'}`}>{i.u ? '▲' : '▼'} {i.c}</div>
+          {indicesList.map((i: any) => (
+            <div key={i.name} className="surface-2 border border-b1 rounded-xl px-3 py-2 flex-shrink-0 min-w-[120px]">
+              <div className="text-[10px] font-bold text-t2">{i.name}</div>
+              <div className={`font-mono text-xs font-medium ${i.up ? 'text-up' : 'text-down'}`}>{i.value}</div>
+              <div className={`font-mono text-[9px] ${i.up ? 'text-up' : 'text-down'}`}>{i.change}</div>
             </div>
           ))}
         </div>
@@ -266,12 +302,13 @@ export const DashboardPage: React.FC<{ onOpenStock: (sym: string) => void }> = (
             </span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-            {HEATMAP_DATA.map(h => {
+            {sectorsList.map(h => {
               const int = Math.abs(h.pct) / 1.5;
               const isUp = h.pct > 0;
               return (
                 <div key={h.n} className="rounded-xl p-2.5 md:p-3 text-center cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] border border-transparent"
-                  style={{ background: isUp ? `rgba(16,217,138,${0.07 + int * 0.15})` : `rgba(255,71,87,${0.07 + int * 0.15})` }}>
+                  style={{ background: isUp ? `rgba(16,217,138,${0.07 + int * 0.15})` : `rgba(255,71,87,${0.07 + int * 0.15})` }}
+                  onClick={() => onOpenStock(h.n === 'IT' ? 'TCS' : h.n === 'Finance' ? 'HDFCBANK' : h.n === 'Energy' ? 'RELIANCE' : h.n === 'Auto' ? 'TATAMOTORS' : '')}>
                   <div className="text-[11px] md:text-xs font-bold">{h.n}</div>
                   <div className={`text-[10px] md:text-xs font-mono font-semibold mt-0.5 ${isUp ? 'text-up' : 'text-down'}`}>{h.c}</div>
                 </div>
