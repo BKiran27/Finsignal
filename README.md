@@ -2,8 +2,7 @@ Overview
 FinSignal Capital is a self-contained investment research and personal finance analysis platform . It delivers 18 AI-driven analysis modes through a polished, 
 
 Features
-Investment Analysis (Gold Accent)
-
+Investment Analysis 
 Full Stock Analysis
 Financial Health Forensics
 Moat & Competitive Advantage Analysis
