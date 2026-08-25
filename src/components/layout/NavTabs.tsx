@@ -11,6 +11,7 @@ const tabs: Tab[] = [
   { id: 'surveillance', label: 'Surveillance', icon: '📡' },
   { id: 'debate', label: 'Agent Debate', icon: '🤖' },
   { id: 'analyse', label: 'Research', icon: '🔬' },
+  { id: 'chart', label: 'Chart', icon: '📈' },
   { id: 'screener', label: 'Screener', icon: '🎯' },
   { id: 'portfolio', label: 'Holdings', icon: '💼' },
   { id: 'risk', label: 'Risk', icon: '⚠️' },

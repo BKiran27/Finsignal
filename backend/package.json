@@ -9,16 +9,19 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "*",
     "@anthropic-ai/sdk": "*",
+    "@supabase/supabase-js": "*",
     "cors": "*",
     "dotenv": "*",
-    "express": "*"
+    "express": "*",
+    "socket.io": "^4.8.3",
+    "yahoo-finance2": "^4.0.2"
   },
   "devDependencies": {
     "@types/cors": "*",
     "@types/express": "*",
     "@types/node": "*",
+    "@types/socket.io": "^3.0.1",
     "ts-node": "*",
     "typescript": "*"
   }

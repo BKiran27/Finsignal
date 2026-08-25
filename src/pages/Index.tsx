@@ -11,6 +11,7 @@ import { AllocatorPage } from './AllocatorPage';
 import { ResearchDeskPage } from './ResearchDeskPage';
 import { SurveillancePage } from './SurveillancePage';
 import { AgentDebatePage } from './AgentDebatePage';
+import { ChartPage } from './ChartPage';
 import { AccountPage } from './AccountPage';
 
 const Index = () => {
@@ -36,6 +37,7 @@ const Index = () => {
         {activeTab === 'surveillance' && <SurveillancePage />}
         {activeTab === 'debate' && <AgentDebatePage />}
         {activeTab === 'analyse' && <ResearchPage />}
+        {activeTab === 'chart' && <ChartPage />}
         {activeTab === 'screener' && <ScreenerPage onSelectStock={handleScreenerSelect} />}
         {activeTab === 'portfolio' && <HoldingsPage />}
         {activeTab === 'risk' && <RiskPage />}
